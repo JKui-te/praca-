@@ -1,0 +1,72 @@
+import React from 'react';
+import { Loader2 } from 'lucide-react';
+import { useWorkoutSession } from '@/hooks/useWorkoutSession';
+import WorkoutHeader from '@/components/workout/WorkoutHeader';
+import ExerciseCard from '@/components/workout/ExerciseCard';
+import AddExerciseInput from '@/components/workout/AddExerciseInput';
+import AiFeedbackCard from '@/components/workout/AiFeedbackCard';
+import FinishWorkoutButton from '@/components/workout/FinishWorkoutButton';
+
+export default function WorkoutSession() {
+  const { workout, isLoading, exercises, totalVolume, totalSets, analyze, actions } = useWorkoutSession();
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
+  }
+  if (!workout) {
+    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Workout not found.</div>;
+  }
+
+  const isCompleted = workout.status === 'completed';
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-3xl mx-auto px-4 py-6 sm:py-8">
+        <WorkoutHeader
+          workout={workout}
+          isCompleted={isCompleted}
+          totalSets={totalSets}
+          totalVolume={totalVolume}
+          exerciseCount={exercises.length}
+          onBack={actions.goBack}
+          onTitleChange={actions.setTitle}
+        />
+
+        <div className="space-y-4 mb-6">
+          {exercises.map((ex, exIdx) => (
+            <ExerciseCard
+              key={exIdx}
+              exercise={ex}
+              exIdx={exIdx}
+              isCompleted={isCompleted}
+              onRename={(name) => actions.renameExercise(exIdx, name)}
+              onRemove={() => actions.removeExercise(exIdx)}
+              onAddSet={() => actions.addSet(exIdx)}
+              onRemoveSet={actions.removeSet}
+              onUpdateSet={actions.updateSet}
+            />
+          ))}
+        </div>
+
+        {!isCompleted && <AddExerciseInput onAdd={actions.addExercise} />}
+
+        {isCompleted && workout.ai_feedback && (
+          <AiFeedbackCard
+            rating={workout.ai_rating}
+            summary={workout.ai_summary}
+            feedback={workout.ai_feedback}
+          />
+        )}
+
+        {!isCompleted && (
+          <FinishWorkoutButton
+            onFinish={actions.analyze}
+            disabled={exercises.length === 0}
+            isPending={analyze.isPending}
+            error={analyze.isError ? (analyze.error?.response?.data?.error || 'Failed to analyze. Try again.') : null}
+          />
+        )}
+      </div>
+    </div>
+  );
+}

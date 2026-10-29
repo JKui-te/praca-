@@ -1,0 +1,80 @@
+import React from 'react';
+import { base44 } from '@/api/base44Client';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Plus, Dumbbell, Flame } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import AppLayout from '@/components/AppLayout';
+import WorkoutStats from '@/components/workouts/WorkoutStats';
+import WorkoutHistoryItem from '@/components/workouts/WorkoutHistoryItem';
+
+export default function Workouts() {
+  const queryClient = useQueryClient();
+
+  const { data: workouts = [], isLoading } = useQuery({
+    queryKey: ['workouts'],
+    queryFn: () => base44.entities.Workout.list('-created_date', 50)
+  });
+
+  const createWorkout = useMutation({
+    mutationFn: async () => {
+      const now = new Date().toISOString();
+      return base44.entities.Workout.create({
+        title: new Date(now).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) + ' Session',
+        status: 'active',
+        started_at: now,
+        exercises: []
+      });
+    },
+    onSuccess: (w) => {
+      queryClient.invalidateQueries({ queryKey: ['workouts'] });
+      window.location.href = `/workout/${w.id}`;
+    }
+  });
+
+  const completed = workouts.filter(w => w.status === 'completed');
+  const avgRating = completed.length
+    ? (completed.reduce((s, w) => s + (w.ai_rating || 0), 0) / completed.length).toFixed(1)
+    : '—';
+
+  return (
+    <AppLayout>
+      <div className="p-6 lg:p-8 max-w-3xl mx-auto">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-12 h-12 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center glow-violet">
+            <Dumbbell className="w-6 h-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-display font-bold tracking-tight text-glow">Workouts</h1>
+            <p className="text-sm text-muted-foreground">Log it. Rate it. Beat it.</p>
+          </div>
+        </div>
+
+        <WorkoutStats total={workouts.length} completed={completed.length} avgRating={avgRating} />
+
+        <Button
+          onClick={() => createWorkout.mutate()}
+          disabled={createWorkout.isPending}
+          className="w-full h-14 text-base font-semibold bg-primary hover:bg-primary/90 glow-violet mb-8"
+        >
+          <Plus className="w-5 h-5 mr-2" />
+          {createWorkout.isPending ? 'Starting...' : 'Start New Workout'}
+        </Button>
+
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">History</h2>
+        {isLoading ? (
+          <p className="text-muted-foreground text-sm">Loading...</p>
+        ) : workouts.length === 0 ? (
+          <Card className="p-8 text-center bg-card/40 border-dashed border-border">
+            <Flame className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+            <p className="text-muted-foreground text-sm">No workouts yet. Start your first session above.</p>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {workouts.map(w => <WorkoutHistoryItem key={w.id} workout={w} />)}
+          </div>
+        )}
+      </div>
+    </AppLayout>
+  );
+}

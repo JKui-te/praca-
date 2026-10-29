@@ -1,0 +1,16 @@
+import React, { useState } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useBodyWeight } from '@/hooks/useBodyWeight';
+import HomeMobile from '@/components/home/HomeMobile';
+import HomeDesktop from '@/components/home/HomeDesktop';
+
+export default function Home() {
+  const isMobile = useIsMobile();
+  const [unit, setUnit] = useState('kg');
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const { sortedAsc, entriesDesc, latest, net } = useBodyWeight();
+
+  const props = { sortedAsc, entriesDesc, latest, net, unit, setUnit, sheetOpen, setSheetOpen };
+
+  return isMobile ? <HomeMobile {...props} /> : <HomeDesktop {...props} />;
+}

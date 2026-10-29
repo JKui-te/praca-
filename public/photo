@@ -1,0 +1,77 @@
+import React, { useRef, useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Camera, Loader2, ImageIcon } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import AppLayout from '@/components/AppLayout';
+import PhotoGrid from '@/components/photos/PhotoGrid';
+import PhotoViewer from '@/components/photos/PhotoViewer';
+
+export default function Photos() {
+  const fileRef = useRef(null);
+  const [viewing, setViewing] = useState(null);
+  const queryClient = useQueryClient();
+
+  const { data: photos = [], isLoading } = useQuery({
+    queryKey: ['progressphotos'],
+    queryFn: () => base44.entities.ProgressPhoto.list('-logged_at', 200)
+  });
+
+  const upload = useMutation({
+    mutationFn: async (file) => {
+      const { file_url } = await base44.integrations.Core.UploadPublicFile({ file });
+      return base44.entities.ProgressPhoto.create({
+        photo_url: file_url,
+        logged_at: new Date().toISOString()
+      });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['progressphotos'] })
+  });
+
+  const onPick = (e) => {
+    const file = e.target.files?.[0];
+    if (file) upload.mutate(file);
+    e.target.value = '';
+  };
+
+  return (
+    <AppLayout>
+      <div className="p-6 lg:p-8 max-w-3xl mx-auto">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-12 h-12 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center glow-violet">
+            <Camera className="w-6 h-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-display font-bold tracking-tight text-glow">Progress Photos</h1>
+            <p className="text-sm text-muted-foreground">Snap it. Track the change.</p>
+          </div>
+        </div>
+
+        <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onPick} />
+        <Button
+          onClick={() => fileRef.current?.click()}
+          disabled={upload.isPending}
+          className="w-full h-14 text-base font-semibold bg-primary hover:bg-primary/90 glow-violet mb-8"
+        >
+          {upload.isPending
+            ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Uploading...</>
+            : <><Camera className="w-5 h-5 mr-2" /> Add Photo</>}
+        </Button>
+
+        {isLoading ? (
+          <div className="flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+        ) : photos.length === 0 ? (
+          <Card className="p-10 text-center bg-card/40 border-dashed border-border">
+            <ImageIcon className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+            <p className="text-muted-foreground text-sm">No photos yet. Add your first progress photo above.</p>
+          </Card>
+        ) : (
+          <PhotoGrid photos={photos} onSelect={setViewing} />
+        )}
+      </div>
+
+      {viewing && <PhotoViewer photo={viewing} onClose={() => setViewing(null)} />}
+    </AppLayout>
+  );
+}

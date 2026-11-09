@@ -1,0 +1,10 @@
+
+
+export async function GET(request) {
+  return Response.json({ zadania: [] });
+}
+
+export async function POST(request) {
+  const dane = await request.json();
+  return Response.json({ id: 1, ...dane }, { status: 201 });
+}

@@ -1,0 +1,24 @@
+// Plik: src/app/layout.js
+export default function RootLayout({ children }) {
+  return (
+    <html lang="pl">
+      <body>
+        <header>
+          <nav><strong>Moja Aplikacja</strong></nav>
+        </header>
+        {children}
+      </body>
+    </html>
+  );
+}
+// Plik: src/app/page.js
+import Link from 'next/link';
+
+export default function HomePage() {
+  return (
+    <main style={{ padding: '2rem' }}>
+      <h1>Witaj na stronie głównej!</h1>
+      <Link href="/about">Przejdź do strony O nas</Link>
+    </main>
+  );
+}

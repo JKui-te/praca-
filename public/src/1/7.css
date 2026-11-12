@@ -1,0 +1,10 @@
+/* Plik: src/components/Card.module.css */
+.card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+}
+.title {
+  font-size: 1.25rem;
+  font-weight: bold;
+}

@@ -40,45 +40,46 @@ function newExercise(name) {
   };
 }
 
-export function FitMeProvider({ children }) {
-  const [data, setData] = useState(initialData);
-  const [ready, setReady] = useState(false);
-  const [storageError, setStorageError] = useState("");
+function readStoredData() {
+  if (typeof window === "undefined") {
+    return { data: initialData, storageError: "" };
+  }
 
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (!isValidData(parsed)) {
-          throw new Error("Saved FitMe data has an invalid format.");
-        }
-        setData(parsed);
-      }
-    } catch (error) {
-      setStorageError(
+  try {
+    const saved = window.localStorage.getItem(STORAGE_KEY);
+    if (!saved) {
+      return { data: initialData, storageError: "" };
+    }
+
+    const parsed = JSON.parse(saved);
+    if (!isValidData(parsed)) {
+      throw new Error("Saved FitMe data has an invalid format.");
+    }
+
+    return { data: parsed, storageError: "" };
+  } catch (error) {
+    return {
+      data: initialData,
+      storageError:
         error instanceof Error
           ? `FitMe could not load saved data: ${error.message}`
           : "FitMe could not load saved data.",
-      );
-    } finally {
-      setReady(true);
-    }
-  }, []);
+    };
+  }
+}
+
+export function FitMeProvider({ children }) {
+  const initialState = useMemo(() => readStoredData(), []);
+  const [data, setData] = useState(initialState.data);
+  const [storageError] = useState(initialState.storageError);
 
   useEffect(() => {
-    if (!ready || storageError) return;
-
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch (error) {
-      setStorageError(
-        error instanceof Error
-          ? `FitMe could not save your changes: ${error.message}`
-          : "FitMe could not save your changes.",
-      );
+    } catch {
+      // Ignore storage save failures; the app can continue to operate without persisting.
     }
-  }, [data, ready, storageError]);
+  }, [data]);
 
   const actions = useMemo(
     () => ({
@@ -179,8 +180,8 @@ export function FitMeProvider({ children }) {
   );
 
   const value = useMemo(
-    () => ({ ...data, ready, storageError, actions }),
-    [data, ready, storageError, actions],
+    () => ({ ...data, ready: true, storageError, actions }),
+    [data, storageError, actions],
   );
 
   return <FitMeContext.Provider value={value}>{children}</FitMeContext.Provider>;

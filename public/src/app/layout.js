@@ -1,14 +1,15 @@
 import FitMeLayout from "@/components/fitme/FitMeLayout";
 
-export default function AppLayout({ children }) {
-  return <FitMeLayout>{children}</FitMeLayout>;
-}
-<html lang="pl">
+export const metadata = {
+  title: "FitMe",
+  description: "Training dashboard",
+};
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="pl">
       <body>
-        <header>
-          <nav><strong>Moja Aplikacja</strong></nav>
-        </header>
-        {children}
+        <FitMeLayout>{children}</FitMeLayout>
       </body>
     </html>
   );

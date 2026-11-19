@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useFitMe } from "@/components/fitme/FitMeProvider";
+import { useFitMe } from "@/components/fitmenienaocene/FitMeProvider";
 
 function today() {
   const date = new Date();

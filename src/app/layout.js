@@ -1,4 +1,4 @@
-import FitMeLayout from "@/components/fitme/FitMeLayout";
+import FitMeLayout from "@/components/fitmenienaocene/FitMeLayout";
 
 export const metadata = {
   title: "FitMe",

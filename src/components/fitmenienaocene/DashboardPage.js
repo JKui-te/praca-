@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import Icon from "@/components/fitme/Icon";
-import { displayWeight, useFitMe } from "@/components/fitme/FitMeProvider";
-import WeightLogForm from "@/components/fitme/WeightLogForm";
+import Icon from "@/components/fitmenienaocene/Icon";
+import { displayWeight, useFitMe } from "@/components/fitmenienaocene/FitMeProvider";
+import WeightLogForm from "@/components/fitmenienaocene/WeightLogForm";
 
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 

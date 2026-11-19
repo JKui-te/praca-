@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Icon from "@/components/fitme/Icon";
-import { FitMeProvider, useFitMe } from "@/components/fitme/FitMeProvider";
+import Icon from "@/components/fitmenienaocene/Icon";
+import { FitMeProvider, useFitMe } from "@/components/fitmenienaocene/FitMeProvider";
 
 const navigation = [
   { label: "Dashboard", href: "/", icon: "dashboard" },
